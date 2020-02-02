@@ -1,5 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import {
+  ButtonToolbar,
+  Button,
+  DropdownItem,
+  DropdownButton,
+  ButtonGroup
+} from "react-bootstrap";
 import "./index.css";
 
 class Box extends React.Component {
@@ -47,6 +54,53 @@ class Grid extends React.Component {
   }
 }
 
+class Buttons extends React.Component {
+  handleSelect = evt => {
+    this.props.gridSize(evt);
+  };
+  render() {
+    return (
+      <div className="center">
+        <ButtonToolbar>
+          <ButtonGroup>
+            <Button className="btn btn-default" onClick={this.props.playButton}>
+              Play
+            </Button>
+            <Button
+              className="btn btn-default"
+              onClick={this.props.pauseButton}
+            >
+              Pause
+            </Button>
+            <Button className="btn btn-default" onClick={this.props.clear}>
+              Clear
+            </Button>
+            <Button className="btn btn-default" onClick={this.props.slow}>
+              Slow
+            </Button>
+            <Button className="btn btn-default" onClick={this.props.fast}>
+              Fast
+            </Button>
+            <Button className="btn btn-default" onClick={this.props.seed}>
+              Seed
+            </Button>
+            <DropdownButton
+              as={ButtonGroup}
+              title="Grid Size"
+              id="size-menu"
+              onSelect={this.handleSelect}
+            >
+              <DropdownItem eventKey={1}>20x10</DropdownItem>
+              <DropdownItem eventKey={2}>50x30</DropdownItem>
+              <DropdownItem eventKey={3}>70x50</DropdownItem>
+            </DropdownButton>
+          </ButtonGroup>
+        </ButtonToolbar>
+      </div>
+    );
+  }
+}
+
 class Main extends React.Component {
   constructor() {
     super();
@@ -62,10 +116,35 @@ class Main extends React.Component {
     };
   }
 
+  selectBox = (row, col) => {
+    let newGrid = arrayClone(this.state.gridFull);
+    newGrid[row][col] = !newGrid[row][col];
+    this.setState({ gridFull: newGrid });
+  };
+
+  seed = () => {
+    let newGrid = arrayClone(this.state.gridFull);
+    console.log("we got here");
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        if (Math.floor(Math.random() * 4) === 1) {
+          newGrid[i][j] = true;
+        }
+      }
+    }
+    this.setState({ gridFull: newGrid });
+  };
+
+  componentDidMount() {
+    this.seed();
+    console.log('Component Did Mount')
+  }
+
   render() {
     return (
       <div>
         <h1>Game Of Life</h1>
+        <Buttons seed={this.seed} />
         <Grid
           gridFull={this.state.gridFull}
           rows={this.rows}
@@ -76,6 +155,10 @@ class Main extends React.Component {
       </div>
     );
   }
+}
+
+function arrayClone(arr) {
+  return JSON.parse(JSON.stringify(arr));
 }
 
 ReactDOM.render(<Main />, document.getElementById("root"));
