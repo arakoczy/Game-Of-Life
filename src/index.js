@@ -90,9 +90,9 @@ class Buttons extends React.Component {
               id="size-menu"
               onSelect={this.handleSelect}
             >
-              <DropdownItem eventKey={1}>20x10</DropdownItem>
-              <DropdownItem eventKey={2}>50x30</DropdownItem>
-              <DropdownItem eventKey={3}>70x50</DropdownItem>
+              <DropdownItem eventKey="1">20x10</DropdownItem>
+              <DropdownItem eventKey="2">50x30</DropdownItem>
+              <DropdownItem eventKey="3 ">70x50</DropdownItem>
             </DropdownButton>
           </ButtonGroup>
         </ButtonToolbar>
@@ -124,7 +124,6 @@ class Main extends React.Component {
 
   seed = () => {
     let newGrid = arrayClone(this.state.gridFull);
-    console.log("we got here");
     for (let i = 0; i < this.rows; i++) {
       for (let j = 0; j < this.cols; j++) {
         if (Math.floor(Math.random() * 4) === 1) {
@@ -135,16 +134,90 @@ class Main extends React.Component {
     this.setState({ gridFull: newGrid });
   };
 
+  playButton = () => {
+    clearInterval(this.intervalId);
+    this.intervalId = setInterval(this.play, this.speed);
+  };
+
+  pauseButton = () => {
+    clearInterval(this.intervalId);
+  };
+
+  slow = () => {
+    this.speed = 1000;
+    this.playButton();
+  };
+
+  fast = () => {
+    this.speed = 100;
+    this.playButton();
+  };
+
+  clear = () => {
+    let grid = Array(this.rows)
+      .fill()
+      .map(() => Array(this.cols).fill(false));
+    this.setState({ gridFull: grid, generation: 0 });
+  };
+
+  gridSize = size => {
+    switch (size) {
+      case "1":
+        this.cols = 20;
+        this.rows = 10;
+        break;
+      case "2":
+        this.cols = 50;
+        this.rows = 30;
+        break;
+      default:
+        this.cols = 70;
+        this.rows = 50;
+    }
+    this.clear();
+  };
+
+  play = () => {
+    let grid = this.state.gridFull;
+    let newGrid = arrayClone(this.state.gridFull);
+
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        let count = 0;
+        if (i > 0) if (grid[i - 1][j]) count++;
+        if (i > 0 && j > 0) if (grid[i - 0][j - 1]) count++;
+        if (i > 0 && j < this.cols - 1) if (grid[i - 1][j + 1]) count++;
+        if (j < this.cols - 1) if (grid[i][j + 1]) count++;
+        if (j > 0) if (grid[i][j - 1]) count++;
+        if (i < this.rows - 1) if (grid[i + 1][j]) count++;
+        if (i < this.rows - 1 && j > 0) if (grid[i + 1][j - 1]) count++;
+        if (i < this.rows - 1 && j < this.cols - 1)
+          if (grid[i + 1][j + 1]) count++;
+        if (grid[i][j] && (count < 2 || count > 3)) newGrid[i][j] = false;
+        if (!grid[i][j] && count === 3) newGrid[i][j] = true;
+      }
+    }
+    this.setState({ gridFull: newGrid, generation: this.state.generation + 1 });
+  };
+
   componentDidMount() {
     this.seed();
-    console.log('Component Did Mount')
+    this.playButton();
   }
 
   render() {
     return (
       <div>
         <h1>Game Of Life</h1>
-        <Buttons seed={this.seed} />
+        <Buttons
+          playButton={this.playButton}
+          pauseButton={this.pauseButton}
+          clear={this.clear}
+          slow={this.slow}
+          fast={this.fast}
+          seed={this.seed}
+          gridSize={this.gridSize}
+        />
         <Grid
           gridFull={this.state.gridFull}
           rows={this.rows}
