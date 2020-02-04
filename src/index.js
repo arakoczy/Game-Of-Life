@@ -122,18 +122,6 @@ class Main extends React.Component {
     this.setState({ gridFull: newGrid });
   };
 
-  seed = () => {
-    let newGrid = arrayClone(this.state.gridFull);
-    for (let i = 0; i < this.rows; i++) {
-      for (let j = 0; j < this.cols; j++) {
-        if (Math.floor(Math.random() * 4) === 1) {
-          newGrid[i][j] = true;
-        }
-      }
-    }
-    this.setState({ gridFull: newGrid });
-  };
-
   playButton = () => {
     clearInterval(this.intervalId);
     this.intervalId = setInterval(this.play, this.speed);
@@ -143,8 +131,42 @@ class Main extends React.Component {
     clearInterval(this.intervalId);
   };
 
+  play = () => {
+    let grid = this.state.gridFull;
+    let newGrid = arrayClone(this.state.gridFull);
+
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        let count = 0;
+        if (i > 0 && grid[i - 1][j]) count++;
+        if (i > 0 && j > 0 && grid[i - 0][j - 1]) count++;
+        if (i > 0 && j < this.cols - 1 && grid[i - 1][j + 1]) count++;
+        if (j < this.cols - 1 && grid[i][j + 1]) count++;
+        if (j > 0 && grid[i][j - 1]) count++;
+        if (i < this.rows - 1 && grid[i + 1][j]) count++;
+        if (i < this.rows - 1 && j > 0 && grid[i + 1][j - 1]) count++;
+        if (i < this.rows - 1 && j < this.cols - 1 && grid[i + 1][j + 1])
+          count++;
+        if (grid[i][j] && (count < 2 || count > 3)) {
+          newGrid[i][j] = false;
+        }
+        if ((grid[i][j] && count === 2) || count === 3) {
+          newGrid[i][j] = true;
+        }
+        if (grid[i][j] && count > 3) {
+          newGrid[i][j] = false;
+        }
+        if (!grid[i][j] && count === 3) {
+          newGrid[i][j] = true;
+        }
+        
+      }
+    }
+    this.setState({ gridFull: newGrid, generation: this.state.generation + 1 });
+  };
+
   slow = () => {
-    this.speed = 1000;
+    this.speed = 500;
     this.playButton();
   };
 
@@ -158,6 +180,18 @@ class Main extends React.Component {
       .fill()
       .map(() => Array(this.cols).fill(false));
     this.setState({ gridFull: grid, generation: 0 });
+  };
+
+  seed = () => {
+    let newGrid = arrayClone(this.state.gridFull);
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        if (Math.floor(Math.random() * 4) === 1) {
+          newGrid[i][j] = true;
+        }
+      }
+    }
+    this.setState({ gridFull: newGrid });
   };
 
   gridSize = size => {
@@ -175,29 +209,6 @@ class Main extends React.Component {
         this.rows = 50;
     }
     this.clear();
-  };
-
-  play = () => {
-    let grid = this.state.gridFull;
-    let newGrid = arrayClone(this.state.gridFull);
-
-    for (let i = 0; i < this.rows; i++) {
-      for (let j = 0; j < this.cols; j++) {
-        let count = 0;
-        if (i > 0) if (grid[i - 1][j]) count++;
-        if (i > 0 && j > 0) if (grid[i - 0][j - 1]) count++;
-        if (i > 0 && j < this.cols - 1) if (grid[i - 1][j + 1]) count++;
-        if (j < this.cols - 1) if (grid[i][j + 1]) count++;
-        if (j > 0) if (grid[i][j - 1]) count++;
-        if (i < this.rows - 1) if (grid[i + 1][j]) count++;
-        if (i < this.rows - 1 && j > 0) if (grid[i + 1][j - 1]) count++;
-        if (i < this.rows - 1 && j < this.cols - 1)
-          if (grid[i + 1][j + 1]) count++;
-        if (grid[i][j] && (count < 2 || count > 3)) newGrid[i][j] = false;
-        if (!grid[i][j] && count === 3) newGrid[i][j] = true;
-      }
-    }
-    this.setState({ gridFull: newGrid, generation: this.state.generation + 1 });
   };
 
   componentDidMount() {
