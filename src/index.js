@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { countNeighbors, arrayClone } from "./helper";
 import {
   ButtonToolbar,
   Button,
@@ -134,32 +135,22 @@ class Main extends React.Component {
   play = () => {
     let grid = this.state.gridFull;
     let newGrid = arrayClone(this.state.gridFull);
+    const rows = this.rows;
+    const cols = this.cols;
 
-    for (let i = 0; i < this.rows; i++) {
-      for (let j = 0; j < this.cols; j++) {
-        let count = 0;
-        if (i > 0 && grid[i - 1][j]) count++;
-        if (i > 0 && j > 0 && grid[i - 0][j - 1]) count++;
-        if (i > 0 && j < this.cols - 1 && grid[i - 1][j + 1]) count++;
-        if (j < this.cols - 1 && grid[i][j + 1]) count++;
-        if (j > 0 && grid[i][j - 1]) count++;
-        if (i < this.rows - 1 && grid[i + 1][j]) count++;
-        if (i < this.rows - 1 && j > 0 && grid[i + 1][j - 1]) count++;
-        if (i < this.rows - 1 && j < this.cols - 1 && grid[i + 1][j + 1])
-          count++;
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        let count = countNeighbors(grid, i, j, rows, cols);
+
         if (grid[i][j] && (count < 2 || count > 3)) {
           newGrid[i][j] = false;
         }
         if ((grid[i][j] && count === 2) || count === 3) {
           newGrid[i][j] = true;
         }
-        if (grid[i][j] && count > 3) {
-          newGrid[i][j] = false;
-        }
         if (!grid[i][j] && count === 3) {
           newGrid[i][j] = true;
         }
-        
       }
     }
     this.setState({ gridFull: newGrid, generation: this.state.generation + 1 });
@@ -239,10 +230,6 @@ class Main extends React.Component {
       </div>
     );
   }
-}
-
-function arrayClone(arr) {
-  return JSON.parse(JSON.stringify(arr));
 }
 
 ReactDOM.render(<Main />, document.getElementById("root"));
